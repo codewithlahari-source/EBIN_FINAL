@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BatteryLoop · Sign In</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-body">
+  <button id="themeToggle" class="theme-toggle" title="Toggle theme">🌙</button>
+
+  <div class="auth-card">
+    <div class="brand">
+      <div class="logo">🔋</div>
+      <h1>BatteryLoop</h1>
+      <p class="tagline">Recycle batteries · Earn rewards</p>
+    </div>
+
+    <button id="googleSignIn" class="btn btn-primary btn-block" style="margin-top:18px;">
+      <span class="g-icon">G</span> Continue with Google
+    </button>
+
+    <p id="statusMsg" class="muted" style="text-align:center;margin-top:12px;font-size:13px;"></p>
+    <p class="legal">By signing in you agree to our eco-friendly mission ♻️</p>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { isLoggedIn, googleSignIn, checkExistingSession } from './auth.js';
+
+    // If already logged in, go to dashboard
+    if (isLoggedIn()) {
+      window.location.href = '/dashboard.html';
+    }
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = (t) => {
+      document.documentElement.setAttribute('data-theme', t);
+      themeToggle.textContent = t === 'dark' ? '☀️' : '🌙';
+    };
+    applyTheme(localStorage.getItem('theme') || 'light');
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    });
+
+    const toast = (msg, type = 'info') => {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast show ${type}`;
+      setTimeout(() => (el.className = 'toast'), 3000);
+    };
+
+    const statusMsg = document.getElementById('statusMsg');
+
+    // Check if Firebase still has a session (auto re-login)
+    checkExistingSession((user) => {
+      if (user) {
+        statusMsg.textContent = 'Welcome back, ' + user.name + '! Redirecting...';
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 500);
+      }
+    });
+
+    // Google sign-in button click
+    document.getElementById('googleSignIn').addEventListener('click', () => {
+      statusMsg.textContent = 'Opening Google sign-in...';
+      googleSignIn((user, err) => {
+        if (err) {
+          statusMsg.textContent = '';
+          toast(err.message || 'Sign-in failed', 'error');
+          return;
+        }
+        if (user) {
+          toast('Welcome, ' + user.name + '!', 'success');
+          statusMsg.textContent = 'Redirecting...';
+          setTimeout(() => {
+            window.location.href = '/dashboard.html';
+          }, 500);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

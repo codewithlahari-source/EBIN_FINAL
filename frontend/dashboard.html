@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BatteryLoop · Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="logo-bubble">🔋</span>
+      <strong>BatteryLoop</strong>
+    </div>
+    <div class="topbar-right">
+      <button id="themeToggle" class="icon-btn" title="Toggle theme">🌙</button>
+      <span id="userName" class="user-chip">…</span>
+      <button id="logoutBtn" class="btn btn-ghost btn-sm">Logout</button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    
+    <!-- HERO -->
+    <section class="hero-banner">
+      <div class="hero-text">
+        <p class="hello">Welcome back,</p>
+        <h2 id="userGreet">Eco Hero</h2>
+        <p class="hero-sub">Recycle batteries · Earn points · Unlock rewards ♻️</p>
+      </div>
+      <div class="hero-points">
+        <p class="card-label">Reward Balance</p>
+        <h1 id="totalPoints" class="big-number">0</h1>
+        <p class="muted" id="nextRewardHint">Next reward at 50 pts</p>
+        <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="card howto-card">
+      <h3 style="margin: 0; font-size: 1.25rem;">How verification works</h3>
+      <ol class="steps">
+        <li><b>1</b> Submit your battery count below — you'll get a code like <code class="code">BAT4832</code>.</li>
+        <li><b>2</b> Show the code at the smart bin and drop your batteries.</li>
+        <li><b>3</b> The bin's sensor counts and verifies instantly.</li>
+        <li><b>4</b> Points are credited <b>only after verification</b> — no fakes ✅</li>
+      </ol>
+    </section>
+
+    <!-- DEPOSIT & CODE CARDS -->
+    <section class="grid-2">
+      <!-- Deposit Form -->
+      <div class="card form-card">
+        <p class="card-label">New Battery Deposit</p>
+        <form id="depositForm">
+          <label>Bin ID (from QR sticker on the bin)</label>
+          <input id="binId" type="text" value="BIN-01" required />
+          <label>Number of batteries</label>
+          <input id="batteryCount" type="number" min="1" max="50" value="1" required />
+          <button class="btn btn-primary btn-block" type="submit" style="margin-top: 16px;">
+            <span class="btn-text">Generate Deposit Code</span>
+            <span class="spinner hidden"></span>
+          </button>
+        </form>
+        <div class="points-table">
+          <span>1–2 → <b>10 pts</b></span>
+          <span>3–5 → <b>25 pts</b></span>
+          <span>6–10 → <b>60 pts</b></span>
+        </div>
+      </div>
+
+      <!-- Active Code -->
+      <div class="card code-card" id="latestCard">
+        <p class="card-label">Active Deposit Code</p>
+        <h1 id="latestCode" class="big-number code">—</h1>
+        <p class="muted" id="latestStatus">Submit a deposit to generate a code</p>
+        <button id="simulateBtn" class="btn btn-secondary btn-block hidden" style="margin-top: 16px;">
+          🔬 Simulate bin scan (verify now)
+        </button>
+      </div>
+    </section>
+
+    <!-- CLAIM DROP CODE (BIN-FIRST FLOW) REMOVED AS REQUESTED -->
+
+    <!-- REWARDS STORE -->
+    <section class="card rewards-card">
+      <div class="row-between">
+        <h3 style="margin: 0;">🎁 Rewards Store</h3>
+        <span class="muted small" style="background: var(--surface-2); padding: 4px 10px; border-radius: 999px;">Spend points on real perks</span>
+      </div>
+      <div id="rewardsGrid" class="rewards-grid">
+        <p class="muted" style="padding: 24px 0;">Loading rewards…</p>
+      </div>
+    </section>
+
+    <!-- ASSIGNED COUPONS -->
+    <section class="card">
+      <div class="row-between">
+        <h3 style="margin: 0;">🎫 My Coupons</h3>
+        <span class="muted small" style="background: var(--surface-2); padding: 4px 10px; border-radius: 999px;">Granted by the admin team</span>
+      </div>
+      <div id="myCouponsGrid" class="rewards-grid" style="margin-top: 20px;">
+        <p class="muted" style="padding: 24px 0;">No coupons yet — keep recycling to unlock rewards!</p>
+      </div>
+    </section>
+
+    <!-- HISTORY TABLES -->
+    <section class="grid-2">
+      <!-- Deposit History -->
+      <div class="card history-card">
+        <div class="row-between" style="margin-bottom: 12px;">
+          <h3 style="margin: 0;">Deposit History</h3>
+          <button id="refreshBtn" class="btn btn-ghost btn-sm">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Batteries</th>
+                <th>Points</th>
+                <th>Code</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr><td colspan="5" class="muted center">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Redemptions -->
+      <div class="card history-card">
+        <h3 style="margin: 0 0 12px 0;">My Redemptions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Reward</th><th>Cost</th><th>Code</th><th>Status</th></tr>
+            </thead>
+            <tbody id="redemptionsBody">
+              <tr><td colspan="5" class="muted center">No redemptions yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notifications -->
+  <div id="toast" class="toast"></div>
+
+  <!-- App Script -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

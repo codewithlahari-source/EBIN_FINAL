@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BatteryLoop Admin — Control Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:   #030608;
+  --bg:     #060d0a;
+  --s1:     #0a1610;
+  --s2:     #0f2018;
+  --s3:     #162a1e;
+  --s4:     #1d3528;
+  --bd:     #1a3326;
+  --bd2:    #224e36;
+
+  --green:  #00e676;
+  --green2: #00c85a;
+  --green3: rgba(0,230,118,.08);
+
+  --teal:   #00e5d4;
+  --amber:  #ffb700;
+  --red:    #ff3b3b;
+  --blue:   #4da6ff;
+  --pur:    #c084fc;
+
+  --tx:     #b8e8ce;
+  --tx2:    #70b88a;
+  --mu:     #2d5538;
+  --mu2:    #3d6a4e;
+
+  --mono: 'DM Mono', monospace;
+  --sans: 'Nunito', sans-serif;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:15px; }
+body { font-family:var(--sans); background:var(--bg); color:var(--tx); min-height:100vh; overflow-x:hidden; }
+
+body::before {
+  content:''; position:fixed; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px);
+  pointer-events:none; z-index:0;
+}
+
+/* ══ LOGIN ═══════════════════════════════════ */
+#loginWrap {
+  position:fixed; inset:0; z-index:1000; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.login-card {
+  background:var(--s1); border:1px solid var(--bd); border-radius:20px;
+  padding:48px 44px 40px; width:100%; max-width:400px; position:relative;
+  box-shadow:0 0 80px rgba(0,230,118,.05),0 40px 80px rgba(0,0,0,.5);
+}
+.login-card::before {
+  content:''; position:absolute; top:-1px; left:15%; right:15%; height:2px;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+}
+.lc-head { text-align:center; margin-bottom:36px; }
+.lc-emblem {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:60px; height:60px; border:1.5px solid var(--green); border-radius:14px;
+  font-size:26px; margin-bottom:16px; background:rgba(0,230,118,.08);
+  box-shadow:0 0 24px rgba(0,230,118,.2);
+}
+.lc-title { font-size:20px; font-weight:900; color:#fff; }
+.lc-sub { font-family:var(--mono); font-size:10px; color:var(--mu2); letter-spacing:2.5px; text-transform:uppercase; margin-top:6px; }
+.lf { margin-bottom:14px; }
+.lf label { font-family:var(--mono); font-size:10px; color:var(--mu2); text-transform:uppercase; letter-spacing:2px; display:block; margin-bottom:7px; }
+.lf input { width:100%; background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:12px 14px; font-family:var(--mono); font-size:13px; color:var(--green); outline:none; transition:all .2s; }
+.lf input::placeholder { color:var(--mu); }
+.lf input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(0,230,118,.1); }
+.l-btn { width:100%; background:var(--green); color:#000; border:none; border-radius:10px; padding:14px; font-family:var(--sans); font-size:14px; font-weight:800; cursor:pointer; margin-top:6px; transition:all .2s; box-shadow:0 4px 20px rgba(0,230,118,.25); }
+.l-btn:hover { background:var(--green2); }
+.l-btn:active { transform:scale(.98); }
+.l-err { font-family:var(--mono); font-size:11px; color:var(--red); text-align:center; margin-top:12px; display:none; background:rgba(255,59,59,.08); border:1px solid rgba(255,59,59,.2); border-radius:8px; padding:8px; }
+.l-hint { font-family:var(--mono); font-size:10px; color:var(--mu); text-align:center; margin-top:12px; letter-spacing:1px; }
+
+/* ══ LAYOUT ════════════════════════════════ */
+#dash { display:none; position:relative; z-index:1; }
+
+.topbar {
+  position:sticky; top:0; z-index:200; background:rgba(6,13,10,.95);
+  backdrop-filter:blur(20px); border-bottom:1px solid var(--bd); height:52px;
+  display:flex; align-items:center; padding:0 24px; justify-content:space-between; gap:12px;
+}
+.tb-left { display:flex; align-items:center; gap:14px; }
+.tb-logo { font-size:16px; font-weight:900; color:#fff; display:flex; align-items:center; gap:10px; }
+.tb-logo-mark { width:32px; height:32px; border:1.5px solid var(--green); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; background:rgba(0,230,118,.08); box-shadow:0 0 12px rgba(0,230,118,.15); }
+.tb-sep { width:1px; height:22px; background:var(--bd); }
+.tb-node { font-family:var(--mono); font-size:11px; color:var(--mu2); display:flex; align-items:center; gap:6px; }
+.node-dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; box-shadow:0 0 8px var(--green); animation:ndpulse 2.5s ease-in-out infinite; }
+@keyframes ndpulse { 0%,100%{opacity:1}50%{opacity:.25} }
+.tb-right { display:flex; align-items:center; gap:8px; }
+.tb-btn { font-family:var(--mono); font-size:11px; color:var(--mu2); background:transparent; border:1px solid var(--bd); border-radius:6px; padding:6px 12px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; text-decoration:none; transition:all .2s; display:inline-flex; align-items:center; }
+.tb-btn:hover { border-color:var(--green); color:var(--green); }
+.tb-btn.out:hover { border-color:var(--red); color:var(--red); }
+
+.layout { display:flex; min-height:calc(100vh - 52px); }
+
+.sb { width:210px; flex-shrink:0; background:var(--s1); border-right:1px solid var(--bd); padding:14px 8px; display:flex; flex-direction:column; position:sticky; top:52px; height:calc(100vh - 52px); overflow-y:auto; }
+.sb::-webkit-scrollbar { width:0; }
+.sb-label { font-family:var(--mono); font-size:9px; color:var(--mu); text-transform:uppercase; letter-spacing:2.5px; padding:0 10px; margin:14px 0 5px; }
+.sb-item { font-size:13px; font-weight:600; color:var(--mu2); display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; transition:all .15s; border:none; background:transparent; width:100%; text-align:left; margin-bottom:2px; }
+.sb-item:hover { background:var(--s2); color:var(--tx); }
+.sb-item.active { background:var(--s2); color:var(--green); border:1px solid rgba(0,230,118,.15); }
+.sb-icon { font-size:15px; width:20px; text-align:center; flex-shrink:0; }
+.sb-ct { margin-left:auto; font-family:var(--mono); font-size:10px; border-radius:8px; padding:2px 7px; min-width:20px; text-align:center; }
+.ct-g { background:rgba(0,230,118,.1); color:var(--green); border:1px solid rgba(0,230,118,.2); }
+.ct-a { background:rgba(255,183,0,.1); color:var(--amber); border:1px solid rgba(255,183,0,.2); }
+.ct-r { background:rgba(255,59,59,.1); color:var(--red); border:1px solid rgba(255,59,59,.2); }
+.ct-p { background:rgba(192,132,252,.1); color:var(--pur); border:1px solid rgba(192,132,252,.2); }
+.sb-foot { margin-top:auto; padding:12px 10px; border-top:1px solid var(--bd); font-family:var(--mono); font-size:10px; color:var(--mu); line-height:1.9; }
+
+.main { flex:1; padding:24px; overflow:hidden; }
+.panel { display:none; animation:fadein .25s ease; }
+.panel.active { display:block; }
+@keyframes fadein { from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none} }
+
+/* ── Page header ── */
+.ph { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px; }
+.ph h2 { font-size:22px; font-weight:900; color:#fff; letter-spacing:-.4px; }
+.ph .sub { font-family:var(--mono); font-size:11px; color:var(--mu2); margin-top:4px; letter-spacing:.5px; }
+
+/* ── Stats ── */
+.stat-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
+.stat { background:var(--s1); border:1px solid var(--bd); border-radius:14px; padding:18px 16px; position:relative; overflow:hidden; transition:all .2s; }
+.stat:hover { border-color:var(--bd2); transform:translateY(-1px); }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.st-g::before { background:var(--green); }
+.st-a::before { background:var(--amber); }
+.st-t::before { background:var(--teal); }
+.st-r::before { background:var(--red); }
+.st-p::before { background:var(--pur); }
+.stat-val { font-size:30px; font-weight:900; line-height:1; margin-bottom:5px; }
+.st-g .stat-val{color:var(--green)} .st-a .stat-val{color:var(--amber)}
+.st-t .stat-val{color:var(--teal)}  .st-r .stat-val{color:var(--red)}
+.st-p .stat-val{color:var(--pur)}
+.stat-lbl { font-family:var(--mono); font-size:10px; color:var(--mu2); text-transform:uppercase; letter-spacing:1.5px; }
+
+/* ── Card ── */
+.card { background:var(--s1); border:1px solid var(--bd); border-radius:16px; padding:20px; margin-bottom:16px; }
+.card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.ch { font-family:var(--mono); font-size:10px; color:var(--mu2); text-transform:uppercase; letter-spacing:2px; display:flex; align-items:center; gap:7px; }
+.ch-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+
+/* ── Buttons ── */
+.btn { font-family:var(--mono); font-size:10px; padding:8px 14px; border-radius:7px; border:none; cursor:pointer; letter-spacing:1.5px; text-transform:uppercase; transition:all .15s; display:inline-flex; align-items:center; gap:5px; }
+.btn:active { transform:scale(.97); }
+.btn-g { background:rgba(0,230,118,.1); color:var(--green); border:1px solid rgba(0,230,118,.25); }
+.btn-a { background:rgba(255,183,0,.1); color:var(--amber); border:1px solid rgba(255,183,0,.25); }
+.btn-r { background:rgba(255,59,59,.1); color:var(--red); border:1px solid rgba(255,59,59,.25); }
+.btn-t { background:rgba(0,229,212,.08); color:var(--teal); border:1px solid rgba(0,229,212,.2); }
+.btn-p { background:rgba(192,132,252,.1); color:var(--pur); border:1px solid rgba(192,132,252,.25); }
+.btn-g:hover{background:rgba(0,230,118,.2)} .btn-a:hover{background:rgba(255,183,0,.2)}
+.btn-r:hover{background:rgba(255,59,59,.2)} .btn-t:hover{background:rgba(0,229,212,.15)}
+.btn-p:hover{background:rgba(192,132,252,.2)}
+
+/* ── Timeline ── */
+.tl { display:flex; align-items:center; overflow-x:auto; padding-bottom:4px; }
+.tl::-webkit-scrollbar { height:0; }
+.tl-step { display:flex; flex-direction:column; align-items:center; gap:7px; flex:1; min-width:76px; position:relative; }
+.tl-step:not(:last-child)::after { content:''; position:absolute; top:17px; left:calc(50% + 17px); width:calc(100% - 34px); height:1px; background:var(--bd); transition:background .5s; }
+.tl-step.done:not(:last-child)::after { background:var(--green2); }
+.tl-ic { width:34px; height:34px; border-radius:50%; border:1.5px solid var(--bd); background:var(--s2); display:flex; align-items:center; justify-content:center; font-size:14px; z-index:1; transition:all .4s; }
+.tl-step.done .tl-ic { border-color:var(--green); background:rgba(0,230,118,.1); box-shadow:0 0 12px rgba(0,230,118,.22); }
+.tl-step.cur .tl-ic  { border-color:var(--amber); background:rgba(255,183,0,.1); animation:glA 1.4s ease-in-out infinite; }
+@keyframes glA { 0%,100%{box-shadow:0 0 0 0 rgba(255,183,0,.4)}50%{box-shadow:0 0 0 8px rgba(255,183,0,0)} }
+.tl-lbl { font-family:var(--mono); font-size:8.5px; color:var(--mu); text-transform:uppercase; text-align:center; line-height:1.3; }
+.tl-step.done .tl-lbl{color:var(--green)} .tl-step.cur .tl-lbl{color:var(--amber)}
+
+/* ── Bin ── */
+.bin-row { display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+.bin-col { display:flex; flex-direction:column; align-items:center; gap:9px; }
+.bin-body { width:80px; height:130px; border:1.5px solid var(--bd); border-top:none; border-radius:0 0 13px 13px; background:var(--s2); position:relative; overflow:hidden; margin:0 auto; }
+.bin-lid { width:88px; height:12px; background:var(--s3); border:1.5px solid var(--bd); border-radius:6px 6px 0 0; margin:0 auto; transition:transform .4s; transform-origin:right center; }
+#binFill { position:absolute; bottom:0; left:0; right:0; border-radius:0 0 11px 11px; height:0%; transition:height 1.2s cubic-bezier(.4,0,.2,1); }
+.bin-pct { font-family:var(--mono); font-size:22px; font-weight:600; transition:color .5s; }
+.bin-tag { font-family:var(--mono); font-size:9px; font-weight:500; padding:4px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:1.5px; }
+.info-grid { flex:1; min-width:200px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ib { background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:13px; }
+.ib-val { font-family:var(--mono); font-size:18px; font-weight:600; color:#fff; line-height:1; }
+.ib-lbl { font-family:var(--mono); font-size:9px; color:var(--mu); text-transform:uppercase; letter-spacing:1.5px; margin-top:5px; }
+.sim-sec { padding-top:14px; margin-top:14px; border-top:1px solid var(--bd); }
+.sim-lbl { font-family:var(--mono); font-size:9px; color:var(--mu); letter-spacing:2.5px; text-transform:uppercase; margin-bottom:10px; }
+.actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ── Alerts ── */
+.sms-list { display:flex; flex-direction:column; gap:8px; max-height:380px; overflow-y:auto; }
+.sms-list::-webkit-scrollbar { width:3px; }
+.sms-list::-webkit-scrollbar-thumb { background:var(--bd); border-radius:2px; }
+.sms-item { background:var(--s2); border:1px solid var(--bd); border-radius:10px; padding:12px 14px; display:flex; gap:12px; animation:fadein .3s ease; position:relative; overflow:hidden; }
+.sms-item::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px; }
+.sms-item.full::before{background:var(--red)} .sms-item.ok::before{background:var(--green)} .sms-item.hazard::before{background:var(--amber)} .sms-item.info::before{background:var(--teal)}
+.si-icon { font-size:17px; flex-shrink:0; padding-left:6px; margin-top:2px; }
+.si-body { flex:1; }
+.si-hdr { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+.si-ch { font-family:var(--mono); font-size:11px; color:var(--mu2); }
+.si-t { font-family:var(--mono); font-size:10px; color:var(--mu); margin-left:auto; }
+.si-msg { font-family:var(--mono); font-size:12px; color:var(--tx); line-height:1.5; }
+.badge { font-family:var(--mono); font-size:9px; padding:2px 8px; border-radius:10px; letter-spacing:1px; text-transform:uppercase; }
+.badge.full{background:rgba(255,59,59,.12);color:var(--red);border:1px solid rgba(255,59,59,.3)}
+.badge.ok{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.3)}
+.badge.hazard{background:rgba(255,183,0,.1);color:var(--amber);border:1px solid rgba(255,183,0,.3)}
+.badge.info{background:rgba(0,229,212,.08);color:var(--teal);border:1px solid rgba(0,229,212,.2)}
+.badge.reward{background:rgba(192,132,252,.1);color:var(--pur);border:1px solid rgba(192,132,252,.25)}
+.badge.assigned{background:rgba(255,183,0,.1);color:var(--amber);border:1px solid rgba(255,183,0,.3)}
+
+/* ── Drop list ── */
+.drop-list { display:flex; flex-direction:column; gap:7px; max-height:360px; overflow-y:auto; }
+.drop-list::-webkit-scrollbar { width:3px; }
+.drop-list::-webkit-scrollbar-thumb { background:var(--bd); border-radius:2px; }
+.drop-row { background:var(--s2); border:1px solid var(--bd); border-radius:9px; padding:10px 14px; display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:14px; animation:fadein .3s ease; }
+.dr-code { font-family:var(--mono); font-size:18px; font-weight:700; color:var(--green); letter-spacing:3px; }
+.dr-meta { font-family:var(--mono); font-size:11px; color:var(--mu2); }
+.dr-g { font-family:var(--mono); font-size:11px; color:var(--amber); }
+.dr-pts { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--teal); }
+
+/* ── User cards ── */
+.users-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; }
+.user-card { background:var(--s2); border:1px solid var(--bd); border-radius:14px; padding:18px; position:relative; transition:all .2s; }
+.user-card:hover { border-color:var(--bd2); transform:translateY(-2px); }
+.uc-badge { position:absolute; top:12px; right:12px; font-family:var(--mono); font-size:9px; padding:3px 8px; border-radius:10px; }
+.uc-badge.top { background:rgba(255,183,0,.12); color:var(--amber); border:1px solid rgba(255,183,0,.25); }
+.uc-badge.new { background:rgba(0,229,212,.08); color:var(--teal); border:1px solid rgba(0,229,212,.2); }
+.uc-top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+.uc-avatar { width:44px; height:44px; border-radius:50%; background:var(--sage,#2d7a3a); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; color:#fff; flex-shrink:0; }
+.uc-name { font-size:15px; font-weight:800; color:#fff; }
+.uc-phone { font-family:var(--mono); font-size:10px; color:var(--mu2); margin-top:2px; }
+.uc-stats { display:flex; gap:0; border-top:1px solid var(--bd); padding-top:12px; }
+.ucs { flex:1; text-align:center; }
+.ucs:not(:last-child) { border-right:1px solid var(--bd); }
+.ucs-val { font-family:var(--mono); font-size:17px; font-weight:700; color:var(--green); }
+.ucs-lbl { font-family:var(--mono); font-size:9px; color:var(--mu); text-transform:uppercase; letter-spacing:1px; margin-top:3px; }
+
+/* ── Table ── */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+th { text-align:left; padding:10px 12px; color:var(--mu); font-weight:400; font-size:9.5px; text-transform:uppercase; letter-spacing:2px; border-bottom:1px solid var(--bd); }
+td { padding:11px 12px; border-bottom:1px solid rgba(26,51,38,.5); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--s2); }
+.empty-td { color:var(--mu); padding:24px 12px !important; text-align:center; }
+
+/* ── Serial ── */
+#serial { background:var(--void); border:1px solid var(--bd); border-radius:10px; padding:14px; font-family:var(--mono); font-size:11px; color:var(--green); height:180px; overflow-y:auto; line-height:1.9; white-space:pre-wrap; }
+#serial::-webkit-scrollbar { width:3px; }
+#serial::-webkit-scrollbar-thumb { background:var(--bd); border-radius:2px; }
+
+/* ── Filter ── */
+.filter-input { background:var(--s2); border:1px solid var(--bd); border-radius:8px; padding:8px 14px; font-family:var(--mono); font-size:12px; color:var(--green); outline:none; transition:border-color .2s; }
+.filter-input::placeholder { color:var(--mu); }
+.filter-input:focus { border-color:var(--green); }
+
+/* ── CHART ── */
+canvas { display:block; width:100%; }
+
+/* ══════════════════════════════════════════
+   REWARDS SECTION
+══════════════════════════════════════════ */
+.tier-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px;
+}
+
+.tier-card {
+  background:var(--s2); border:1px solid var(--bd);
+  border-radius:14px; padding:18px; text-align:center;
+  position:relative; overflow:hidden; transition:border-color .2s;
+}
+
+.tier-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+
+.tier-bronze::before { background:linear-gradient(90deg,#cd7f32,#e8a87c); }
+.tier-silver::before { background:linear-gradient(90deg,#9e9e9e,#e0e0e0); }
+.tier-gold::before   { background:linear-gradient(90deg,var(--amber),#ffdd57); }
+
+.tier-badge {
+  font-size:28px; margin-bottom:8px;
+}
+.tier-name {
+  font-family:var(--mono); font-size:10px; color:var(--mu2);
+  text-transform:uppercase; letter-spacing:2px; margin-bottom:6px;
+}
+.tier-pts {
+  font-size:22px; font-weight:900; margin-bottom:3px;
+}
+.tier-bronze .tier-pts { color:#cd7f32; }
+.tier-silver .tier-pts { color:#bdbdbd; }
+.tier-gold   .tier-pts { color:var(--amber); }
+
+.tier-drops {
+  font-family:var(--mono); font-size:11px; color:var(--mu2); margin-bottom:12px;
+}
+
+.tier-count {
+  font-family:var(--mono); font-size:11px;
+  background:var(--s1); border:1px solid var(--bd);
+  border-radius:8px; padding:4px 0;
+  color:var(--tx);
+}
+
+/* Coupon upload area */
+.coupon-section { margin-bottom:20px; }
+
+.coupon-tier-label {
+  font-family:var(--mono); font-size:10px; color:var(--mu2);
+  text-transform:uppercase; letter-spacing:2px;
+  margin-bottom:12px; display:flex; align-items:center; gap:8px;
+}
+
+.coupon-tier-label .tc { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.tc-bronze { background:#cd7f32; }
+.tc-silver { background:#9e9e9e; }
+.tc-gold   { background:var(--amber); }
+
+.coupon-row { display:flex; flex-direction:column; gap:10px; }
+
+.coupon-item {
+  background:var(--s2); border:1px solid var(--bd);
+  border-radius:12px; padding:14px 16px;
+  display:grid; grid-template-columns:80px 1fr auto;
+  align-items:center; gap:16px;
+  transition:border-color .2s;
+}
+.coupon-item:hover { border-color:var(--bd2); }
+
+/* Coupon image */
+.coupon-img-wrap {
+  width:80px; height:56px;
+  background:var(--s1); border:1.5px dashed var(--bd);
+  border-radius:10px; position:relative;
+  overflow:hidden; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:border-color .2s;
+  flex-shrink:0;
+}
+.coupon-img-wrap:hover { border-color:var(--green); }
+.coupon-img-wrap img { width:100%; height:100%; object-fit:cover; border-radius:9px; }
+.coupon-img-placeholder { font-size:20px; }
+.coupon-img-overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,.6);
+  display:none; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:9px; color:#fff; letter-spacing:1px;
+  border-radius:9px;
+}
+.coupon-img-wrap:hover .coupon-img-overlay { display:flex; }
+.coupon-file-input { display:none; }
+
+/* Coupon details */
+.coupon-details { display:block; }
+.coupon-title {
+  font-size:14px; font-weight:800; color:#fff; margin-bottom:4px;
+}
+.coupon-meta {
+  font-family:var(--mono); font-size:11px; color:var(--mu2);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+}
+.coupon-code-display {
+  font-family:var(--mono); font-size:12px; font-weight:600;
+  color:var(--green); background:rgba(0,230,118,.08);
+  border:1px solid rgba(0,230,118,.2); border-radius:6px;
+  padding:2px 8px; letter-spacing:1.5px;
+  margin-top:6px; display:inline-block;
+}
+.coupon-code-display.empty { color:var(--mu); border-color:var(--bd); background:transparent; }
+
+/* Coupon actions */
+.coupon-actions { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+.coupon-code-input {
+  background:var(--s1); border:1px solid var(--bd);
+  border-radius:7px; padding:6px 10px;
+  font-family:var(--mono); font-size:12px; color:var(--green);
+  outline:none; width:130px; letter-spacing:1px; text-transform:uppercase;
+  transition:border-color .2s;
+}
+.coupon-code-input::placeholder { color:var(--mu); text-transform:none; }
+.coupon-code-input:focus { border-color:var(--green); }
+
+/* Assign modal */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.75);
+  z-index:500; display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:var(--s1); border:1px solid var(--bd2);
+  border-radius:20px; padding:32px; width:100%; max-width:480px;
+  box-shadow:0 0 60px rgba(0,230,118,.08), 0 40px 80px rgba(0,0,0,.5);
+  animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:none} }
+.modal-box h3 { font-size:18px; font-weight:900; color:#fff; margin-bottom:18px; letter-spacing:-.3px; }
+.modal-user-info {
+  background:var(--s2); border:1px solid var(--bd);
+  border-radius:10px; padding:14px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:16px;
+}
+.modal-avatar { width:40px; height:40px; border-radius:50%; background:var(--s4); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:900; color:var(--green); flex-shrink:0; }
+.modal-uname { font-size:15px; font-weight:800; color:#fff; }
+.modal-umeta { font-family:var(--mono); font-size:11px; color:var(--mu2); margin-top:2px; }
+.modal-pts-badge { margin-left:auto; font-family:var(--mono); font-size:12px; font-weight:700; color:var(--amber); background:rgba(255,183,0,.1); border:1px solid rgba(255,183,0,.25); border-radius:8px; padding:4px 10px; }
+.modal-label { font-family:var(--mono); font-size:10px; color:var(--mu2); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+.modal-coupon-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:18px; max-height:280px; overflow-y:auto; }
+.modal-coupon-opt {
+  background:var(--s2); border:2px solid var(--bd);
+  border-radius:10px; padding:10px; cursor:pointer;
+  text-align:center; transition:all .2s;
+}
+.modal-coupon-opt:hover { border-color:var(--green); }
+.modal-coupon-opt.selected { border-color:var(--green); background:rgba(0,230,118,.08); }
+.modal-coupon-opt.disabled { opacity:.35; cursor:not-allowed; }
+.mco-img { width:100%; height:46px; object-fit:cover; border-radius:6px; margin-bottom:6px; background:var(--s1); display:flex; align-items:center; justify-content:center; font-size:20px; }
+.mco-img img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+.mco-title { font-size:11px; font-weight:700; color:#fff; margin-bottom:3px; }
+.mco-pts { font-family:var(--mono); font-size:10px; color:var(--amber); }
+.mco-code { font-family:var(--mono); font-size:10px; color:var(--green); margin-top:2px; }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+.modal-close { font-family:var(--mono); font-size:11px; color:var(--mu2); background:transparent; border:1px solid var(--bd); border-radius:7px; padding:8px 16px; cursor:pointer; transition:all .2s; }
+.modal-close:hover { border-color:var(--red); color:var(--red); }
+.modal-assign { font-family:var(--mono); font-size:11px; background:var(--green); color:#000; border:none; border-radius:7px; padding:8px 18px; cursor:pointer; font-weight:700; transition:all .2s; letter-spacing:.5px; }
+.modal-assign:hover { background:var(--green2); }
+.modal-assign:disabled { background:var(--s3); color:var(--mu); cursor:default; }
+
+/* Assigned coupons log */
+.assigned-list { display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto; }
+.assigned-row {
+  background:var(--s2); border:1px solid var(--bd);
+  border-radius:10px; padding:12px 14px;
+  display:grid; grid-template-columns:54px 1fr auto; gap:12px;
+  align-items:center; animation:fadein .3s ease;
+}
+.ar-img { width:54px; height:38px; border-radius:7px; overflow:hidden; background:var(--s1); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ar-img img { width:100%; height:100%; object-fit:cover; }
+.ar-title { font-size:13px; font-weight:700; color:#fff; margin-bottom:2px; }
+.ar-meta { font-family:var(--mono); font-size:10px; color:var(--mu2); }
+.ar-code { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--green); letter-spacing:1.5px; }
+
+/* ── Responsive ── */
+@media (max-width:720px) {
+  .sb { display:none; }
+  .main { padding:14px; }
+  .tier-grid { grid-template-columns:1fr; }
+  .coupon-item { grid-template-columns:1fr; }
+  .coupon-actions { flex-direction:row; }
+  .drop-row { grid-template-columns:auto 1fr auto; }
+}
+
+/* ── Toast ── */
+#toast { position:fixed; bottom:22px; right:22px; background:var(--s3); border:1px solid var(--bd); border-radius:10px; padding:12px 18px; font-family:var(--mono); font-size:12px; color:var(--tx); opacity:0; transform:translateY(8px); transition:all .3s; z-index:500; max-width:290px; pointer-events:none; }
+#toast.show { opacity:1; transform:none; }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══════════════════════════════ -->
+<div id="loginWrap">
+  <div class="login-card">
+    <div class="lc-head">
+      <div class="lc-emblem">♻</div>
+      <div class="lc-title">BatteryLoop Admin</div>
+      <div class="lc-sub">Control Centre · ESP8266 WiFi</div>
+    </div>
+    <div class="lf"><label>Username</label><input type="text" id="lu" placeholder="admin" autocomplete="off"></div>
+    <div class="lf"><label>Password</label><input type="password" id="lp" placeholder="••••••••"></div>
+    <button class="l-btn" onclick="doLogin()">Access Dashboard →</button>
+    <div class="l-err" id="lerr">Incorrect credentials.</div>
+    <div class="l-hint">admin / eco2024 · collector / collect1</div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ════════════════════════════ -->
+<div id="dash">
+
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo">
+        <div class="tb-logo-mark">♻</div>
+        BatteryLoop
+      </div>
+      <div class="tb-sep"></div>
+      <div class="tb-node"><div class="node-dot"></div>BIN-001 · ESP8266</div>
+    </div>
+    <div class="tb-right">
+      <span class="tb-btn" id="tb-ip">·</span>
+      <a href="user.html" target="_blank" class="tb-btn">User Portal ↗</a>
+      <button class="tb-btn out" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <nav class="sb">
+      <div class="sb-label">Monitor</div>
+      <button class="sb-item active" onclick="go('overview')" id="nav-overview"><span class="sb-icon">📊</span>Overview</button>
+      <button class="sb-item" onclick="go('bin')"      id="nav-bin"><span class="sb-icon">🗑</span>Bin Control</button>
+
+      <div class="sb-label">Users</div>
+      <button class="sb-item" onclick="go('users')"  id="nav-users"><span class="sb-icon">👥</span>Users<span class="sb-ct ct-g" id="userCt">0</span></button>
+      <button class="sb-item" onclick="go('drops')"  id="nav-drops"><span class="sb-icon">📦</span>Drops<span class="sb-ct ct-a" id="dropCt">0</span></button>
+
+      <div class="sb-label">Rewards</div>
+      <button class="sb-item" onclick="go('rewards')" id="nav-rewards"><span class="sb-icon">🎁</span>Rewards<span class="sb-ct ct-p" id="rewardCt">0</span></button>
+      <button class="sb-item" onclick="go('assigned')" id="nav-assigned"><span class="sb-icon">🏷</span>Assigned<span class="sb-ct ct-p" id="assignedCt">0</span></button>
+
+      <div class="sb-label">Logs</div>
+      <button class="sb-item" onclick="go('alerts')"  id="nav-alerts"><span class="sb-icon">🔔</span>Alerts<span class="sb-ct ct-r" id="alertCt">0</span></button>
+      <button class="sb-item" onclick="go('history')" id="nav-history"><span class="sb-icon">📋</span>Collections</button>
+
+      <div class="sb-foot">ESP8266 WiFi Node<br>HC-SR04 + DS18B20<br>No GSM · HTTP POST<br>v3.0 · 115200 baud</div>
+    </nav>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- ═ OVERVIEW ═══════════════════════════ -->
+      <div class="panel active" id="panel-overview">
+        <div class="ph">
+          <div><h2>Overview</h2><div class="sub" id="lastTs">Last read: —</div></div>
+          <button class="btn btn-g" onclick="refreshData()">↻ Refresh</button>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat st-g"><div class="stat-val" id="ov-fill">0%</div><div class="stat-lbl">Fill Level</div></div>
+          <div class="stat st-a"><div class="stat-val" id="ov-users">0</div><div class="stat-lbl">Users</div></div>
+          <div class="stat st-t"><div class="stat-val" id="ov-drops">0</div><div class="stat-lbl">Drops</div></div>
+          <div class="stat st-p"><div class="stat-val" id="ov-pts">0</div><div class="stat-lbl">Total Points</div></div>
+          <div class="stat st-r"><div class="stat-val" id="ov-alerts">0</div><div class="stat-lbl">Alerts</div></div>
+        </div>
+
+        <!-- Lifecycle -->
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--green)"></span>Collection Lifecycle</div>
+          </div>
+          <div class="tl">
+            <div class="tl-step done" id="tl-0"><div class="tl-ic">📥</div><div class="tl-lbl">Drops Added</div></div>
+            <div class="tl-step done" id="tl-1"><div class="tl-ic">📱</div><div class="tl-lbl">Validated</div></div>
+            <div class="tl-step"      id="tl-2"><div class="tl-ic">📡</div><div class="tl-lbl">HTTP Alert</div></div>
+            <div class="tl-step"      id="tl-3"><div class="tl-ic">🚛</div><div class="tl-lbl">Collecting</div></div>
+            <div class="tl-step"      id="tl-4"><div class="tl-ic">🗑</div><div class="tl-lbl">Emptied</div></div>
+            <div class="tl-step"      id="tl-5"><div class="tl-ic">✅</div><div class="tl-lbl">Reset</div></div>
+          </div>
+        </div>
+
+        <!-- REAL DATA CHART -->
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--green)"></span>Points Earned — Per Drop (Real Data)</div>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--mu)">Updates on each validated drop</span>
+          </div>
+          <canvas id="dropChart" height="110"></canvas>
+          <div id="chartEmpty" style="font-family:var(--mono);font-size:12px;color:var(--mu);text-align:center;padding:24px 0;display:none">
+            No drop data yet. Validate codes from the User Portal.
+          </div>
+        </div>
+      </div>
+
+      <!-- ═ BIN CONTROL ══════════════════════ -->
+      <div class="panel" id="panel-bin">
+        <div class="ph"><div><h2>Bin Control</h2><div class="sub">BIN-001 · Block A, Lab 3</div></div></div>
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--green)"></span>Live Sensor Data</div>
+            <span id="binStateLabel" style="font-family:var(--mono);font-size:10px;color:var(--green)">NORMAL</span>
+          </div>
+          <div class="bin-row">
+            <div class="bin-col">
+              <div style="width:88px">
+                <div class="bin-lid" id="binLid"></div>
+                <div class="bin-body"><div id="binFill" style="position:absolute;bottom:0;left:0;right:0;border-radius:0 0 11px 11px;height:0%;transition:height 1.2s cubic-bezier(.4,0,.2,1)"></div></div>
+              </div>
+              <div class="bin-pct" id="binPct">0%</div>
+              <div class="bin-tag" id="binTag" style="background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.3)">NORMAL</div>
+            </div>
+            <div class="info-grid">
+              <div class="ib"><div class="ib-val" id="b-temp">28.0°C</div><div class="ib-lbl">Temperature</div></div>
+              <div class="ib"><div class="ib-val" id="b-dist">30.0 cm</div><div class="ib-lbl">Distance</div></div>
+              <div class="ib"><div class="ib-val" id="b-drops">0</div><div class="ib-lbl">Cycle Drops</div></div>
+              <div class="ib"><div class="ib-val" id="b-peak">0%</div><div class="ib-lbl">Cycle Peak</div></div>
+            </div>
+          </div>
+          <div class="sim-sec">
+            <div class="sim-lbl">Bin Actions</div>
+            <div class="actions">
+              <button class="btn btn-t" onclick="simCollect()">🚛 Mark as Emptied</button>
+              <button class="btn btn-g" onclick="refreshData()">↻ Refresh data</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--green)"></span>Serial Monitor · 115200</div>
+            <button class="btn btn-r" onclick="document.getElementById('serial').textContent=''" style="padding:5px 10px;font-size:9px">Clear</button>
+          </div>
+          <div id="serial">Waiting for sensor events…&#10;</div>
+        </div>
+      </div>
+
+      <!-- ═ USERS ════════════════════════════ -->
+      <div class="panel" id="panel-users">
+        <div class="ph">
+          <div><h2>Registered Users</h2><div class="sub" id="usersSubTitle">0 users</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="text" class="filter-input" id="userSearch" placeholder="Search name, phone..." oninput="renderUsers()">
+            <button class="btn btn-g" onclick="loadFromStorage()">↻ Refresh</button>
+          </div>
+        </div>
+        <div class="users-grid" id="usersGrid">
+          <div style="font-family:var(--mono);font-size:12px;color:var(--mu);padding:24px;grid-column:1/-1;text-align:center">No users registered yet.</div>
+        </div>
+      </div>
+
+      <!-- ═ DROPS ════════════════════════════ -->
+      <div class="panel" id="panel-drops">
+        <div class="ph">
+          <div><h2>Drop Log</h2><div class="sub">4-digit codes validated via User Portal</div></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-g" onclick="loadFromStorage()">↻ Refresh</button>
+            <button class="btn btn-r" onclick="clearDrops()">Clear</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--teal)"></span>All Validations</div>
+            <span id="dropCountLbl" style="font-family:var(--mono);font-size:10px;color:var(--mu)">0 entries</span>
+          </div>
+          <div class="drop-list" id="dropList"><div style="font-family:var(--mono);font-size:12px;color:var(--mu);padding:16px 0;text-align:center">No drops yet.</div></div>
+        </div>
+      </div>
+
+      <!-- ═ REWARDS ═══════════════════════════ -->
+      <div class="panel" id="panel-rewards">
+        <div class="ph">
+          <div>
+            <h2>Reward Coupons</h2>
+            <div class="sub">Upload coupon images · Set coupon codes · Assign to eligible users</div>
+          </div>
+          <button class="btn btn-p" onclick="openAddCouponForm()">+ Add Coupon</button>
+        </div>
+
+        <!-- Tier summary -->
+        <div class="tier-grid" id="tierGrid">
+          <div class="tier-card tier-bronze">
+            <div class="tier-badge">🥉</div>
+            <div class="tier-name">Bronze Tier</div>
+            <div class="tier-pts">10 pts</div>
+            <div class="tier-drops">1 – 2 batteries dropped</div>
+            <div class="tier-count"><span id="bronzeUsers">0</span> eligible users</div>
+          </div>
+          <div class="tier-card tier-silver">
+            <div class="tier-badge">🥈</div>
+            <div class="tier-name">Silver Tier</div>
+            <div class="tier-pts">25 pts</div>
+            <div class="tier-drops">3 – 5 batteries dropped</div>
+            <div class="tier-count"><span id="silverUsers">0</span> eligible users</div>
+          </div>
+          <div class="tier-card tier-gold">
+            <div class="tier-badge">🥇</div>
+            <div class="tier-name">Gold Tier</div>
+            <div class="tier-pts">60 pts</div>
+            <div class="tier-drops">6 – 10 batteries dropped</div>
+            <div class="tier-count"><span id="goldUsers">0</span> eligible users</div>
+          </div>
+        </div>
+
+        <!-- Coupons per tier -->
+        <div id="couponsByTier">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Add coupon form -->
+        <div class="card" id="addCouponForm" style="display:none;border-color:var(--bd2)">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--pur)"></span>Add New Coupon</div>
+            <button class="btn btn-r" onclick="document.getElementById('addCouponForm').style.display='none'" style="padding:5px 10px;font-size:9px">✕ Close</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;flex-wrap:wrap" id="addCouponGrid">
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Coupon Title</div>
+              <input type="text" class="filter-input" id="nc-title" placeholder="e.g. Café Coffee Day" style="width:100%">
+            </div>
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Reward Tier</div>
+              <select id="nc-tier" style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:12px;color:var(--green);outline:none">
+                <option value="bronze">🥉 Bronze — 10 pts (1-2 drops)</option>
+                <option value="silver">🥈 Silver — 25 pts (3-5 drops)</option>
+                <option value="gold">🥇 Gold — 60 pts (6-10 drops)</option>
+              </select>
+            </div>
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Coupon Code</div>
+              <input type="text" class="filter-input" id="nc-code" placeholder="SAVE20" style="width:100%;text-transform:uppercase;letter-spacing:2px">
+            </div>
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Description</div>
+              <input type="text" class="filter-input" id="nc-desc" placeholder="20% off on any item" style="width:100%">
+            </div>
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Expiry Date</div>
+              <input type="date" class="filter-input" id="nc-expiry" style="width:100%;color:var(--green)">
+            </div>
+
+            <div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--mu2);letter-spacing:2px;text-transform:uppercase;margin-bottom:7px">Coupon Image</div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <div id="nc-img-preview" style="width:52px;height:38px;background:var(--s2);border:1.5px dashed var(--bd);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0">🎫</div>
+                <span style="font-family:var(--mono);font-size:11px;color:var(--mu2)">Click to upload</span>
+                <input type="file" id="nc-img-file" accept="image/*" style="display:none" onchange="previewNewCouponImg(this)">
+              </label>
+            </div>
+
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-p" onclick="addCoupon()" style="padding:10px 24px;font-size:11px">Add Coupon →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═ ASSIGNED ══════════════════════════ -->
+      <div class="panel" id="panel-assigned">
+        <div class="ph">
+          <div><h2>Assigned Rewards</h2><div class="sub">Coupons assigned to users by admin</div></div>
+          <button class="btn btn-g" onclick="renderAssigned()">↻ Refresh</button>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="ch"><span class="ch-dot" style="background:var(--pur)"></span>All Assignments</div>
+            <span id="assignedCountLbl" style="font-family:var(--mono);font-size:10px;color:var(--mu)">0 assigned</span>
+          </div>
+          <div class="assigned-list" id="assignedList">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--mu);padding:16px 0;text-align:center">No coupons assigned yet.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═ ALERTS ════════════════════════════ -->
+      <div class="panel" id="panel-alerts">
+        <div class="ph">
+          <div><h2>Alert Log</h2><div class="sub" id="alertCountSub">0 alerts</div></div>
+          <button class="btn btn-r" onclick="clearAlerts()">Clear</button>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="ch"><span class="ch-dot" style="background:var(--amber)"></span>HTTP POST Alerts</div></div>
+          <div class="sms-list" id="smsList"><div style="font-family:var(--mono);font-size:12px;color:var(--mu);padding:20px;text-align:center">No alerts yet.</div></div>
+        </div>
+      </div>
+
+      <!-- ═ HISTORY ════════════════════════════ -->
+      <div class="panel" id="panel-history">
+        <div class="ph"><div><h2>Collection History</h2></div></div>
+        <div class="card">
+          <div class="card-head"><div class="ch"><span class="ch-dot" style="background:var(--teal)"></span>Collection Records</div></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Time</th><th>Peak Fill</th><th>Drops</th><th>kg</th><th>Alerts</th><th>Status</th></tr></thead>
+              <tbody id="collBody"><tr><td class="empty-td" colspan="7">No collections yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ ASSIGN MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal-box">
+    <h3>Assign Reward Coupon</h3>
+    <div class="modal-user-info" id="modalUserInfo"></div>
+    <div class="modal-label">Select Coupon to Assign</div>
+    <div class="modal-coupon-grid" id="modalCouponGrid"></div>
+    <div class="modal-actions">
+      <button class="modal-close" onclick="closeModal()">Cancel</button>
+      <button class="modal-assign" id="modalAssignBtn" onclick="confirmAssign()" disabled>Assign →</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module" src="admin-app.js"></script>
+</body>
+</html>
