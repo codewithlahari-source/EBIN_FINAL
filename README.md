@@ -171,40 +171,45 @@ void setup() {
   WiFi.disconnect();
   delay(100);
 
-  int n = WiFi.scanNetworks();
   bool connected = false;
   
-  if (n == 0) {
-    Serial.println("No networks found.");
-  } else {
-    for (int i = 0; i < n; ++i) {
-      if (WiFi.encryptionType(i) == ENC_TYPE_NONE) {
-        Serial.print("Connecting to open network: ");
-        Serial.println(WiFi.SSID(i));
-        WiFi.begin(WiFi.SSID(i));
-        
-        int timeout = 0;
-        while (WiFi.status() != WL_CONNECTED && timeout < 20) {
-          delay(500);
-          Serial.print(".");
-          timeout++;
+  while (!connected) {
+    int n = WiFi.scanNetworks();
+    
+    if (n == 0) {
+      Serial.println("No open networks found. Retrying in 5 seconds...");
+      delay(5000);
+    } else {
+      for (int i = 0; i < n; ++i) {
+        if (WiFi.encryptionType(i) == ENC_TYPE_NONE) {
+          Serial.print("Connecting to open network: ");
+          Serial.println(WiFi.SSID(i));
+          WiFi.begin(WiFi.SSID(i));
+          
+          int timeout = 0;
+          while (WiFi.status() != WL_CONNECTED && timeout < 20) {
+            delay(500);
+            Serial.print(".");
+            timeout++;
+          }
+          
+          if (WiFi.status() == WL_CONNECTED) {
+            connected = true;
+            break;
+          }
         }
-        
-        if (WiFi.status() == WL_CONNECTED) {
-          connected = true;
-          break;
-        }
+      }
+      
+      if (!connected) {
+        Serial.println("Could not connect. Retrying scan in 5 seconds...");
+        delay(5000);
       }
     }
   }
 
-  if (connected) {
-    Serial.println("\nWiFi connected!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-  } else {
-    Serial.println("\nFailed to connect to any open WiFi network.");
-  }
+  Serial.println("\nWiFi connected!");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
   
   server.begin();
   Serial.println("=== Ready to sync with Dashboard ===\n");
