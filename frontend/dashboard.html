@@ -59,7 +59,12 @@
           <input id="binId" type="text" value="BIN-01" required />
           <label>Number of batteries</label>
           <input id="batteryCount" type="number" min="1" max="50" value="1" required />
-          <button class="btn btn-primary btn-block" type="submit" style="margin-top: 16px;">
+          
+          <div id="lockBanner" class="hidden" style="background: rgba(255, 60, 60, 0.1); color: #ff4a4a; padding: 12px; border-radius: 8px; margin-top: 12px; font-size: 0.9rem; border: 1px solid rgba(255, 60, 60, 0.2);">
+            🔒 Bin is currently in use by someone else. Please wait.
+          </div>
+
+          <button id="generateBtn" class="btn btn-primary btn-block" type="submit" style="margin-top: 16px;">
             <span class="btn-text">Generate Deposit Code</span>
             <span class="spinner hidden"></span>
           </button>

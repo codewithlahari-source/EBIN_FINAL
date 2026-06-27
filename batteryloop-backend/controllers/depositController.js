@@ -17,6 +17,40 @@ const createDeposit = async (req, res, next) => {
     if (!count || count <= 0 || count > 50) {
       return res.status(400).json({ success: false, error: 'Battery count must be 1–50' });
     }
+    
+    const targetBin = binId || 'BIN-01';
+
+    // --- LOCK CHECK & CLEANUP ---
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+    // 1. Expire any old pending deposits for this bin
+    await Deposit.updateMany(
+      { binId: targetBin, status: 'pending', timestamp: { $lt: fiveMinsAgo } },
+      { $set: { status: 'expired', active: false } }
+    );
+
+    // 2. Check if bin is currently locked
+    const activeLock = await Deposit.findOne({ binId: targetBin, status: 'pending' });
+    if (activeLock) {
+      if (activeLock.userId.toString() !== req.user._id.toString()) {
+        return res.status(409).json({ success: false, error: 'This bin is currently locked by another user. Please wait or try again in a few minutes.' });
+      }
+      // If the current user already holds the lock, return their existing active deposit
+      return res.status(200).json({
+        success: true,
+        deposit: {
+          id: activeLock._id,
+          batteryCount: activeLock.batteryCount,
+          expectedPoints: activeLock.expectedPoints,
+          pointsEarned: 0,
+          generatedCode: activeLock.generatedCode,
+          binId: activeLock.binId,
+          status: activeLock.status,
+          timestamp: activeLock.timestamp,
+        },
+        message: `You already have an active code! Drop ${activeLock.batteryCount} batteries with code ${activeLock.generatedCode}`,
+      });
+    }
+    // ----------------------------
 
     const expectedPoints = calculatePoints(count);
     const generatedCode = await generateDepositCode();

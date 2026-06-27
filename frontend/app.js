@@ -333,6 +333,43 @@ $('logoutBtn').addEventListener('click', () => {
   logout();
 });
 
+/* ---------- Bin Lock Polling ---------- */
+async function checkBinLockStatus() {
+  const binId = $('binId') ? $('binId').value.trim() : null;
+  if (!binId) return;
+
+  try {
+    const res = await fetch(`/api/sensor-data/pending/${binId}`);
+    const data = await res.json();
+    
+    const banner = $('lockBanner');
+    const generateBtn = $('generateBtn');
+    if (!banner || !generateBtn) return;
+    
+    if (data.success && data.hasPending) {
+      const user = getUser();
+      // If someone ELSE locked it
+      if (data.userId && user && data.userId !== user._id) {
+        banner.classList.remove('hidden');
+        generateBtn.disabled = true;
+      } else {
+        // I locked it
+        banner.classList.add('hidden');
+        generateBtn.disabled = false;
+      }
+    } else {
+      // Not locked
+      banner.classList.add('hidden');
+      generateBtn.disabled = false;
+    }
+  } catch (err) {
+    console.warn('Bin lock check failed', err);
+  }
+}
+
+// Check immediately on load if Bin ID changes
+$('binId')?.addEventListener('input', checkBinLockStatus);
+
 /* ---------- Auth gate ---------- */
 if (!isLoggedIn()) {
   window.location.href = '/index.html';
@@ -343,11 +380,13 @@ if (!isLoggedIn()) {
   fetchRedemptions();
   fetchRewards();
   loadMyCoupons();
+  checkBinLockStatus();
 
   // Poll for updates every 10 seconds
   setInterval(() => {
     fetchUserProfile();
     fetchDeposits();
+    checkBinLockStatus();
   }, 10000);
 
   // Poll rewards & coupons less frequently

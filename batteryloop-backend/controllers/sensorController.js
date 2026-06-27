@@ -137,7 +137,8 @@ const getPendingByBin = async (req, res, next) => {
       success: true,
       hasPending: true,
       targetCount: deposit.batteryCount,
-      depositCode: deposit.generatedCode
+      depositCode: deposit.generatedCode,
+      userId: deposit.userId
     });
   } catch (err) {
     next(err);
