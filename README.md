@@ -116,7 +116,7 @@ Copy and paste this into your Arduino IDE. Make sure to install the `TM1637` lib
 // The bin will automatically scan for and connect to an OPEN WiFi network.
 
 // ⚠️ CHANGE THIS TO YOUR VERCEL URL ⚠️
-const char* VERCEL_APP_URL = "https://your-app.vercel.app";
+const char* VERCEL_APP_URL = "https://ebin1.vercel.app";
 String API_POST_DATA = String(VERCEL_APP_URL) + "/api/sensor-data";
 String API_GET_PENDING = String(VERCEL_APP_URL) + "/api/sensor-data/pending/BIN-01";
 
