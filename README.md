@@ -85,14 +85,11 @@ Here is the complete, non-negotiable wiring guide for the physical bin.
 
 ## ⚠️ CRITICAL CHANGES FOR THE ARDUINO CODE
 
-Before flashing the Arduino code to the NodeMCU, **you MUST change the following 3 things** in the code below so it can talk to your specific PC:
+Before flashing the Arduino code to the NodeMCU, **you MUST change the following** in the code below:
 
-1. **`SSID`**: Change this to your home WiFi name.
-2. **`PASSWORD`**: Change this to your home WiFi password.
-3. **`IP ADDRESS`**: Change `192.168.X.X` in the two API endpoints to **your computer's IPv4 Address**. 
-   *(To find your IP: Open Command Prompt on your PC and type `ipconfig`. Look for "IPv4 Address").*
+1. **`VERCEL_APP_URL`**: Change `https://your-app.vercel.app` to your actual Vercel deployment URL.
 
-*Note: Your PC and the NodeMCU MUST be connected to the exact same WiFi network.*
+*Note: The Arduino will automatically scan for and connect to the strongest open (no password) WiFi network it can find!*
 
 ---
 
@@ -116,13 +113,12 @@ Copy and paste this into your Arduino IDE. Make sure to install the `TM1637` lib
 #define YELLOW_LED D8      
 
 // ============== WIFI CONFIGURATION ==============
-// ⚠️ CHANGE THESE TO YOUR WIFI ⚠️
-const char* SSID = "YOUR_WIFI_NAME";
-const char* PASSWORD = "YOUR_WIFI_PASSWORD";
+// The bin will automatically scan for and connect to an OPEN WiFi network.
 
-// ⚠️ CHANGE 192.168.X.X TO YOUR COMPUTER'S IPv4 ADDRESS ⚠️
-const char* API_POST_DATA = "http://192.168.X.X:3000/api/sensor-data";
-const char* API_GET_PENDING = "http://192.168.X.X:3000/api/sensor-data/pending/BIN-01";
+// ⚠️ CHANGE THIS TO YOUR VERCEL URL ⚠️
+const char* VERCEL_APP_URL = "https://your-app.vercel.app";
+String API_POST_DATA = String(VERCEL_APP_URL) + "/api/sensor-data";
+String API_GET_PENDING = String(VERCEL_APP_URL) + "/api/sensor-data/pending/BIN-01";
 
 // ============== SENSOR CONFIGURATION ==============
 #define MAX_BIN_DISTANCE 50
@@ -170,17 +166,45 @@ void setup() {
   display.setBrightness(0x0f);
   display.showNumberDec(0);
   
-  Serial.println("Connecting to WiFi...");
-  WiFi.begin(SSID, PASSWORD);
+  Serial.println("Scanning for Open WiFi networks...");
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  int n = WiFi.scanNetworks();
+  bool connected = false;
   
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  if (n == 0) {
+    Serial.println("No networks found.");
+  } else {
+    for (int i = 0; i < n; ++i) {
+      if (WiFi.encryptionType(i) == ENC_TYPE_NONE) {
+        Serial.print("Connecting to open network: ");
+        Serial.println(WiFi.SSID(i));
+        WiFi.begin(WiFi.SSID(i));
+        
+        int timeout = 0;
+        while (WiFi.status() != WL_CONNECTED && timeout < 20) {
+          delay(500);
+          Serial.print(".");
+          timeout++;
+        }
+        
+        if (WiFi.status() == WL_CONNECTED) {
+          connected = true;
+          break;
+        }
+      }
+    }
   }
-  
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+
+  if (connected) {
+    Serial.println("\nWiFi connected!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\nFailed to connect to any open WiFi network.");
+  }
   
   server.begin();
   Serial.println("=== Ready to sync with Dashboard ===\n");
@@ -225,7 +249,8 @@ void pollDashboardForTargets() {
   
   if (WiFi.status() != WL_CONNECTED) return;
   
-  WiFiClient client;
+  WiFiClientSecure client;
+  client.setInsecure(); // Required for HTTPS to Vercel
   HTTPClient http;
   
   http.begin(client, API_GET_PENDING);
@@ -320,7 +345,8 @@ void updateLEDs() {
 void sendStatusToDashboard() {
   if (WiFi.status() != WL_CONNECTED) return;
   
-  WiFiClient client;
+  WiFiClientSecure client;
+  client.setInsecure(); // Required for HTTPS to Vercel
   HTTPClient http;
   
   http.begin(client, API_POST_DATA);

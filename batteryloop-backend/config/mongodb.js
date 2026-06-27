@@ -7,7 +7,12 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
 
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected) {
+    return;
+  }
   try {
     // Use Google Public DNS to resolve MongoDB Atlas SRV records
     // (fixes ECONNREFUSED on ISPs that block SRV lookups)
@@ -16,10 +21,15 @@ const connectDB = async () => {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 15000,
     });
+    isConnected = !!conn.connections[0].readyState;
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (err) {
     console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    } else {
+      throw err;
+    }
   }
 };
 

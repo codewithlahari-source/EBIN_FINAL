@@ -20,6 +20,16 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' })); // large limit for image data URLs
 
+// Ensure DB is connected for serverless function calls
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 /* ─── API routes ─── */
 app.use('/auth',              require('./routes/auth'));
 app.use('/api/auth',          require('./routes/auth'));
@@ -54,4 +64,10 @@ const start = async () => {
   });
 };
 
-start();
+// Start the server if running locally
+if (process.env.NODE_ENV !== 'production') {
+  start();
+}
+
+// Export for Vercel Serverless
+module.exports = app;
