@@ -256,8 +256,10 @@ void pollDashboardForTargets() {
   
   WiFiClientSecure client;
   client.setInsecure(); // Required for HTTPS to Vercel
-  HTTPClient http;
+  client.setTimeout(15000);
   
+  HTTPClient http;
+  http.setTimeout(15000);
   http.begin(client, API_GET_PENDING);
   int httpCode = http.GET();
   
@@ -352,8 +354,10 @@ void sendStatusToDashboard() {
   
   WiFiClientSecure client;
   client.setInsecure(); // Required for HTTPS to Vercel
+  client.setTimeout(15000);
+
   HTTPClient http;
-  
+  http.setTimeout(15000);
   http.begin(client, API_POST_DATA);
   http.addHeader("Content-Type", "application/json");
   
