@@ -125,7 +125,7 @@ String API_GET_PENDING = String(VERCEL_APP_URL) + "/api/sensor-data/pending/BIN-
 #define SAFE_ZONE 15        
 #define TRIGGER_ZONE 10     
 #define BIN_FULL_DISTANCE 7 
-#define DEBOUNCE_TIME 2000  
+#define DEBOUNCE_TIME 500  
 
 // ============== DISPLAY SETUP ==============
 TM1637Display display(DISPLAY_CLK, DISPLAY_DIO);
@@ -244,7 +244,7 @@ void loop() {
   updateDisplay();
   updateLEDs();
   
-  delay(100); 
+  delay(40); 
 }
 
 // ============== FETCH TARGET FROM DASHBOARD ==============
