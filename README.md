@@ -360,14 +360,15 @@ void sendStatusToDashboard() {
   String jsonPayload = "{\"binId\":\"BIN-01\", \"detectedCount\":" + String(targetCount) + "}";
   int httpResponseCode = http.POST(jsonPayload);
   
-  if (httpResponseCode > 0) {
+  if (httpResponseCode == 200 || httpResponseCode == 201) {
     Serial.println("Success! Points awarded to user.");
     targetCount = 0; 
     currentCount = 0;
     showDepositCode = false;
   } else {
-    Serial.print("Error sending POST request. Error code: ");
+    Serial.print("Error sending POST request. HTTP code: ");
     Serial.println(httpResponseCode);
+    Serial.println("Server Response: " + http.getString());
   }
   
   http.end();
