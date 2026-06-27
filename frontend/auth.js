@@ -18,12 +18,13 @@ import {
 
 // Your existing Firebase project — used only for Google sign-in popup
 const firebaseConfig = {
-  apiKey: "AIzaSyB8PQmV2IOS4iTaoyB3_4nP84eudQnXUDk",
-  authDomain: "ebin-48296.firebaseapp.com",
-  projectId: "ebin-48296",
-  storageBucket: "ebin-48296.firebasestorage.app",
-  messagingSenderId: "685772832710",
-  appId: "1:685772832710:web:92eaf8902037010f4a7cc7"
+  apiKey: "AIzaSyBiVknn2eTkWAKRka35Z5sENiEAfm1W8JY",
+  authDomain: "ebin-1.firebaseapp.com",
+  projectId: "ebin-1",
+  storageBucket: "ebin-1.firebasestorage.app",
+  messagingSenderId: "278535367151",
+  appId: "1:278535367151:web:db71d2d4a418627fad6e1a",
+  measurementId: "G-7MXYVDL0LG"
 };
 
 const app = initializeApp(firebaseConfig);

@@ -13,7 +13,7 @@ const { signToken } = require('../utils/jwt');
 // Initialize Firebase Admin (no service account needed — we only verify tokens)
 if (!getApps().length) {
   initializeApp({
-    projectId: 'ebin-48296',
+    projectId: 'ebin-1',
   });
 }
 
