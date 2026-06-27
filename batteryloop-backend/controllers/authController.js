@@ -39,12 +39,17 @@ const googleLogin = async (req, res, next) => {
     const { uid: googleId, email, name, picture } = decoded;
 
     // Find or create user in MongoDB
-    let user = await User.findOne({ googleId });
+    let user = await User.findOne({ email });
+    if (!user && googleId) {
+      user = await User.findOne({ googleId });
+    }
+    
     const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase());
 
     const role = adminEmails.includes((email || '').toLowerCase()) ? 'admin' : 'user';
 
     if (user) {
+      user.googleId = googleId; // Update googleId in case they switched Firebase projects
       user.name = name || user.name;
       user.profilePicture = picture || user.profilePicture;
       user.role = role; // Update role in case they were added to admins later
