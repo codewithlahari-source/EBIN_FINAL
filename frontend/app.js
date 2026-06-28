@@ -393,5 +393,6 @@ if (!isLoggedIn()) {
   setInterval(() => {
     fetchRewards();
     loadMyCoupons();
+    fetchRedemptions();
   }, 30000);
 }

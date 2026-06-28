@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const voucherRequestSchema = new mongoose.Schema({
   userId:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  voucherId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher', required: true },
+  voucherId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Voucher', default: null },
   rewardName:  { type: String, default: '' },
   cost:        { type: Number, default: 0 },
   redeemCode:  { type: String, default: '' },
