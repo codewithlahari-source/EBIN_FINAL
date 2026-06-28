@@ -348,12 +348,13 @@ async function checkBinLockStatus() {
     
     if (data.success && data.hasPending) {
       const user = getUser();
+      const myId = user && (user.id || user._id);
       // If someone ELSE locked it
-      if (data.userId && user && data.userId !== user._id) {
+      if (data.userId && myId && data.userId.toString() !== myId.toString()) {
         banner.classList.remove('hidden');
         generateBtn.disabled = true;
       } else {
-        // I locked it
+        // I locked it (or no user mismatch)
         banner.classList.add('hidden');
         generateBtn.disabled = false;
       }
