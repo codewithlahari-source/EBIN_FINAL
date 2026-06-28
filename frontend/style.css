@@ -390,3 +390,118 @@ tr:hover td { background: var(--surface-2); }
 .auth-card .tagline { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 32px; }
 .g-icon { background: white; color: #4285F4; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: serif; font-weight: bold; }
 .legal { margin-top: 24px; font-size: 0.8rem; color: var(--text-muted); }
+
+/* =============================================
+   MOBILE-FIRST RESPONSIVE OVERHAUL
+============================================= */
+
+/* ── Tablet (≤ 850px) ── */
+@media (max-width: 850px) {
+  .grid-2 { grid-template-columns: 1fr; }
+
+  .hero-banner {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 28px 24px;
+  }
+  .hero-points { text-align: center; min-width: unset; }
+  .hero-text h2 { font-size: 2rem; }
+
+  .rewards-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+
+  .steps { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Mobile (≤ 600px) ── */
+@media (max-width: 600px) {
+  /* Topbar */
+  .topbar { padding: 10px 14px; }
+  .topbar-left, .topbar-right { gap: 10px; }
+  .logo-bubble { width: 34px; height: 34px; font-size: 1rem; border-radius: 10px; }
+  .topbar strong { font-size: 1rem; }
+  .user-chip { padding: 6px 12px; font-size: 0.8rem; }
+  .icon-btn { width: 36px; height: 36px; font-size: 1rem; }
+  .btn-sm { padding: 7px 12px; font-size: 0.8rem; }
+
+  /* Container */
+  .container { padding: 16px 12px 48px; }
+
+  /* Hero */
+  .hero-banner { padding: 22px 18px; border-radius: 18px; gap: 16px; }
+  .hero-text .hello { font-size: 0.9rem; }
+  .hero-text h2 { font-size: 1.6rem; }
+  .hero-sub { font-size: 0.95rem; }
+  .hero-points { padding: 18px 20px; border-radius: 14px; }
+  .hero-points .big-number { font-size: 2.5rem; }
+
+  /* Cards */
+  .card { padding: 18px 14px; border-radius: 14px; margin-bottom: 16px; }
+  .card:hover { transform: none; }
+
+  /* How it works */
+  .howto-card h3 { font-size: 1.1rem; }
+  .steps { grid-template-columns: 1fr; gap: 10px; }
+  .steps li { padding: 12px; font-size: 0.9rem; }
+  .steps li b { font-size: 1.2rem; margin-bottom: 4px; }
+
+  /* Deposit form */
+  .form-card label { font-size: 0.8rem; margin: 12px 0 6px; }
+  .form-card input { padding: 12px 14px; font-size: 0.95rem; }
+  .btn { padding: 12px 18px; font-size: 0.95rem; }
+  .btn-block { padding: 14px; }
+  .points-table { gap: 6px; }
+  .points-table span { padding: 6px 10px; font-size: 0.8rem; }
+
+  /* Code card */
+  .big-number { font-size: 2.5rem; }
+  .big-number.code { font-size: 2.2rem; }
+
+  /* Rewards */
+  .rewards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .reward { padding: 14px; border-radius: 10px; }
+  .reward-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .reward-name { font-size: 0.95rem; }
+  .reward-desc { font-size: 0.8rem; min-height: 30px; margin-bottom: 10px; }
+  .reward-cost { font-size: 0.8rem; padding: 5px 12px; margin-bottom: 10px; }
+  .reward .btn { padding: 8px 14px; font-size: 0.8rem; }
+
+  /* My Coupons section */
+  .row-between { gap: 8px; }
+  .row-between h3 { font-size: 1.05rem; }
+  .row-between .small { font-size: 0.75rem; padding: 3px 8px; }
+
+  /* Tables */
+  .table-wrap { border-radius: 10px; }
+  table { min-width: 480px; }
+  th, td { padding: 10px 8px; font-size: 0.85rem; }
+  th { font-size: 0.7rem; }
+
+  /* Toast */
+  .toast { padding: 12px 18px; font-size: 0.85rem; border-radius: 16px; max-width: 90vw; }
+
+  /* Auth */
+  .auth-card { padding: 32px 24px; border-radius: 24px; }
+  .auth-card .logo { font-size: 2.8rem; }
+  .auth-card h1 { font-size: 1.7rem; }
+  .auth-card .tagline { font-size: 0.95rem; margin-bottom: 24px; }
+}
+
+/* ── Small phones (≤ 400px) ── */
+@media (max-width: 400px) {
+  .topbar { padding: 8px 10px; }
+  .topbar strong { font-size: 0.9rem; }
+  .user-chip { display: none; }
+
+  .container { padding: 12px 8px 40px; }
+
+  .hero-banner { padding: 18px 14px; border-radius: 14px; }
+  .hero-text h2 { font-size: 1.35rem; }
+  .hero-points .big-number { font-size: 2rem; }
+
+  .rewards-grid { grid-template-columns: 1fr; }
+
+  .big-number { font-size: 2rem; }
+  .big-number.code { font-size: 1.8rem; }
+
+  .card { padding: 14px 12px; border-radius: 12px; }
+}
